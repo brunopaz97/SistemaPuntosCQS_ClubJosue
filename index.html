@@ -1,0 +1,1907 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Puntajes Conquistadores — Mini Web</title>
+    <link rel="stylesheet" href="app/styles.css">
+</head>
+
+<body>
+    <header>
+        <div class="wrap">
+            <div class="row" style="justify-content:space-between">
+                <div class="row">
+                    <img id="logoLeft" src="assets/logo-club.png" alt="Logo Club"
+                        style="height:34px; width:auto; border-radius:8px; border:1px solid var(--border); background:rgba(255,255,255,.03); padding:4px" />
+                    <div>
+                        <h1 style="margin:0">Puntajes Conquistadores</h1>
+                        <div class="muted" id="clubSubtitle">Club Josué • Sistema de puntajes</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <button class="btn small" id="btnExport">Exportar JSON</button>
+                    <button class="btn small" id="btnImport">Importar JSON</button>
+                    <button class="btn small danger" id="btnReset">Reset (demo)</button>
+                </div>
+            </div>
+
+            <nav id="tabs">
+                <button class="tab active" data-tab="inicio">Inicio</button>
+                <button class="tab" data-tab="dashboard">Dashboard</button>
+                <button class="tab" data-tab="miembros">Miembros</button>
+                <button class="tab" data-tab="reuniones">Reuniones</button>
+                <button class="tab" data-tab="eventos">Eventos</button>
+                <button class="tab" data-tab="investidos">Amigos investidos</button>
+                <button class="tab" data-tab="bonos">Bonos / Descuentos</button>
+                <button class="tab" data-tab="premios">Premios & Subastas</button>
+                <button class="tab" data-tab="ranking">Ranking</button>
+                <button class="tab" data-tab="ajustes">Ajustes</button>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="wrap">
+
+            <!-- DASHBOARD -->
+            <section class="section active" id="inicio">
+                <div class="grid">
+                    <div class="card"
+                        style="grid-column: span 12; display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
+                        <img id="logoRight" src="assets/logo-conquis.png" alt="Logo Conquis"
+                            style="height:48px; width:auto; border-radius:10px; border:1px solid var(--border); background:rgba(255,255,255,.03); padding:6px" />
+                        <div style="flex:1; min-width:240px">
+                            <h2 style="margin:0 0 6px">¿Cómo funciona el sistema?</h2>
+                            <div class="hint" id="homeIntro">
+                                Gana puntos cada reunión por responsabilidad y participación. Usa tus puntos en subastas
+                                (septiembre y diciembre).
+                            </div>
+                        </div>
+                        <img id="homeBanner" src="assets/banner.jpg" alt="Banner"
+                            style="height:70px; width:auto; border-radius:12px; border:1px solid var(--border); object-fit:cover; display:none;" />
+                    </div>
+
+                    <div class="card" style="grid-column: span 6;">
+                        <h2>Cómo ganar puntos</h2>
+                        <div class="hint">Puntaje por reunión regular + logros.</div>
+                        <div style="margin-top:10px; overflow:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Acción</th>
+                                        <th class="right">Puntos</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="earnTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card" style="grid-column: span 6;">
+                        <h2>Cómo perder puntos</h2>
+                        <div class="hint">Descuentos correctivos (siempre con explicación).</div>
+                        <div style="margin-top:10px; overflow:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Motivo</th>
+                                        <th class="right">Puntos</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="loseTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card" style="grid-column: span 12;">
+                        <div class="split">
+                            <div class="col">
+                                <h2>Próximos eventos</h2>
+                                <div class="hint">Listado editable desde Ajustes. Se muestran solo los eventos futuros
+                                    (o cercanos).</div>
+                            </div>
+                            <div class="col" style="max-width:280px">
+                                <label>Mostrar próximos</label>
+                                <select id="homeUpcomingLimit">
+                                    <option value="5">5</option>
+                                    <option value="10" selected>10</option>
+                                    <option value="20">20</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:10px; overflow:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Evento</th>
+                                        <th>Lugar</th>
+                                        <th class="right">Pts</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="upcomingBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card" style="grid-column: span 12;">
+                        <div class="split" style="align-items:center">
+                            <div class="col">
+                                <h2>Modo administración</h2>
+                                <div class="hint">Esto solo oculta/mostrar botones. En GitHub Pages no es seguridad
+                                    real. Para seguridad real: Worker.</div>
+                            </div>
+                            <div class="col" style="max-width:420px">
+                                <div class="split">
+                                    <div class="col">
+                                        <label>Clave admin</label>
+                                        <input id="adminKey" type="password" placeholder="Ingresa tu clave..." />
+                                    </div>
+                                    <div class="col" style="max-width:160px">
+                                        <label>&nbsp;</label>
+                                        <button class="btn primary" id="btnAdminLogin">Entrar</button>
+                                    </div>
+                                    <div class="col" style="max-width:160px">
+                                        <label>&nbsp;</label>
+                                        <button class="btn danger" id="btnAdminLogout">Salir</button>
+                                    </div>
+                                </div>
+                                <div class="muted" style="margin-top:8px">Estado: <b id="adminStatus">Lectura</b></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section" id="dashboard">
+                <div class="grid">
+                    <div class="card" style="grid-column: span 4;">
+                        <h2>Resumen</h2>
+                        <div class="muted">Miembros activos</div>
+                        <div class="kpi" id="kpiMembers">0</div>
+                        <div class="hr"></div>
+                        <div class="muted">Puntos acumulados (club)</div>
+                        <div class="kpi" id="kpiTotalPoints">0</div>
+                        <div class="muted" style="margin-top:6px">Última actualización: <span id="kpiUpdated">—</span>
+                        </div>
+                    </div>
+
+                    <div class="card" style="grid-column: span 8;">
+                        <h2>Top 10 (temporada)</h2>
+                        <div class="hint">Este ranking considera: reuniones + eventos + investidos + bonos + descuentos
+                            + canjes.</div>
+                        <div style="margin-top:10px; overflow:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Conquistador</th>
+                                        <th>Unidad</th>
+                                        <th class="right">Puntos</th>
+                                        <th class="right">Canjeados</th>
+                                        <th class="right">Saldo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="top10Body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card" style="grid-column: span 12;">
+                        <h2>Actividad reciente</h2>
+                        <div class="hint">Últimos 15 movimientos (registro / correcciones).</div>
+                        <div style="margin-top:10px; overflow:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Conquistador</th>
+                                        <th>Detalle</th>
+                                        <th class="right">Puntos</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MIEMBROS -->
+            <section class="section" id="miembros">
+                <div class="two">
+                    <div class="card">
+                        <h2>Agregar / editar miembro</h2>
+                        <div class="split">
+                            <div class="col">
+                                <label>Nombre</label>
+                                <input id="mName" placeholder="Ej: Mateo Salazar" />
+                            </div>
+                            <div class="col">
+                                <label>Unidad</label>
+                                <input id="mUnit" placeholder="Ej: Halcones" />
+                            </div>
+                        </div>
+                        <div class="split" style="margin-top:10px">
+                            <div class="col">
+                                <label>Estado</label>
+                                <select id="mActive">
+                                    <option value="true">Activo</option>
+                                    <option value="false">Inactivo</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label>&nbsp;</label>
+                                <button class="btn primary" id="btnSaveMember">Guardar</button>
+                            </div>
+                        </div>
+                        <div class="hint" style="margin-top:10px">
+                            Tip: puedes marcar inactivo si ya no asiste, sin borrar su histórico.
+                        </div>
+                        <div class="hr"></div>
+                        <div class="toolbar">
+                            <span class="tag"><span class="dot"></span>IDs internos (no visibles)</span>
+                            <span class="tag"><span class="dot ok"></span>LocalStorage</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Lista de miembros</h2>
+                        <div class="split">
+                            <div class="col">
+                                <label>Buscar</label>
+                                <input id="memberSearch" placeholder="Nombre o unidad..." />
+                            </div>
+                            <div class="col" style="max-width:220px">
+                                <label>Filtrar</label>
+                                <select id="memberFilter">
+                                    <option value="all">Todos</option>
+                                    <option value="active">Activos</option>
+                                    <option value="inactive">Inactivos</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-top:10px; overflow:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Unidad</th>
+                                        <th>Estado</th>
+                                        <th class="right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="memberBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- REUNIONES -->
+            <section class="section" id="reuniones">
+                <div class="two">
+                    <div class="card">
+                        <h2>Registrar reunión (por conquistador)</h2>
+                        <div class="split">
+                            <div class="col">
+                                <label>Fecha</label>
+                                <input id="meetDate" type="date" />
+                            </div>
+                            <div class="col">
+                                <label>Tipo</label>
+                                <select id="meetType">
+                                    <option value="sabado">Sábado regular</option>
+                                    <option value="domingo">Domingo mensual</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:12px">
+                            <label>Conquistador</label>
+                            <select id="meetMember"></select>
+                        </div>
+
+                        <div class="hr"></div>
+
+                        <div class="split">
+                            <div class="col">
+                                <label><input type="checkbox" id="chkBible" /> Biblia (+<span
+                                        id="pBible">1</span>)</label>
+                                <label><input type="checkbox" id="chkScarf" /> Pañoleta (+<span
+                                        id="pScarf">1</span>)</label>
+                                <label><input type="checkbox" id="chkPunctual" /> Puntualidad (+<span
+                                        id="pPunctual">2</span>)</label>
+                                <label><input type="checkbox" id="chkNotebook" /> Cuadernillo (+<span
+                                        id="pNotebook">1</span>)</label>
+                            </div>
+                            <div class="col">
+                                <label>Bonos opcionales (si aplica)</label>
+                                <select id="meetBonus">
+                                    <option value="0">Sin bono</option>
+                                    <option value="5">Dirigir dinámica (+5)</option>
+                                    <option value="5b">Ayudar logística (+5)</option>
+                                    <option value="5c">Versículo memorizado (+5)</option>
+                                    <option value="8">Traer invitado (+8)</option>
+                                    <option value="10">Desafío del mes (+10)</option>
+                                </select>
+
+                                <label style="margin-top:10px">Notas (opcional)</label>
+                                <input id="meetNotes" placeholder="Ej: Dirigió dinámica / ayudó a montar..." />
+                            </div>
+                        </div>
+
+                        <div class="hr"></div>
+                        <div class="toolbar" style="justify-content:space-between">
+                            <div class="tag"><span class="dot ok"></span> Puntos reunión: <b id="meetPoints">0</b></div>
+                            <button class="btn good" id="btnAddMeeting">Registrar</button>
+                        </div>
+                        <div class="hint" style="margin-top:10px">
+                            Cada registro de reunión queda como un movimiento. Puedes corregir borrando el movimiento
+                            desde el historial.
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Historial de reuniones</h2>
+                        <div class="split">
+                            <div class="col">
+                                <label>Desde</label>
+                                <input id="meetFrom" type="date" />
+                            </div>
+                            <div class="col">
+                                <label>Hasta</label>
+                                <input id="meetTo" type="date" />
+                            </div>
+                            <div class="col" style="max-width:220px">
+                                <label>Conquistador</label>
+                                <select id="meetFilterMember"></select>
+                            </div>
+                        </div>
+                        <div style="margin-top:10px; overflow:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Conquistador</th>
+                                        <th>Detalle</th>
+                                        <th class="right">Puntos</th>
+                                        <th class="right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="meetBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- EVENTOS -->
+            <section class="section" id="eventos">
+                <div class="two">
+                    <div class="card">
+                        <h2>Registrar evento</h2>
+                        <div class="split">
+                            <div class="col">
+                                <label>Nombre evento</label>
+                                <input id="eventName" placeholder="Ej: Camporee / Servicio comunitario" />
+                            </div>
+                            <div class="col">
+                                <label>Fecha</label>
+                                <input id="eventDate" type="date" />
+                            </div>
+                        </div>
+                        <div class="split" style="margin-top:10px">
+                            <div class="col">
+                                <label>Conquistador</label>
+                                <select id="eventMember"></select>
+                            </div>
+                            <div class="col">
+                                <label>Puntos por participar</label>
+                                <input id="eventPoints" type="number" min="0" step="1" />
+                            </div>
+                        </div>
+                        <label style="margin-top:10px">Notas (opcional)</label>
+                        <input id="eventNotes" placeholder="Ej: Participó completo / apoyo en logística..." />
+                        <div class="hr"></div>
+                        <button class="btn good" id="btnAddEvent">Registrar participación</button>
+                        <div class="hint" style="margin-top:10px">
+                            Por defecto el sistema usa <b>+10</b> puntos por evento (configurable en Ajustes).
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Historial de eventos</h2>
+                        <div class="split">
+                            <div class="col">
+                                <label>Buscar</label>
+                                <input id="eventSearch" placeholder="Por nombre del evento..." />
+                            </div>
+                            <div class="col" style="max-width:220px">
+                                <label>Conquistador</label>
+                                <select id="eventFilterMember"></select>
+                            </div>
+                        </div>
+                        <div style="margin-top:10px; overflow:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Evento</th>
+                                        <th>Conquistador</th>
+                                        <th>Detalle</th>
+                                        <th class="right">Puntos</th>
+                                        <th class="right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eventBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- INVESTIDOS -->
+            <section class="section" id="investidos">
+                <div class="two">
+                    <div class="card">
+                        <h2>Registrar Amigo investido</h2>
+                        <div class="split">
+                            <div class="col">
+                                <label>Conquistador</label>
+                                <select id="invMember"></select>
+                            </div>
+                            <div class="col">
+                                <label>Fecha</label>
+                                <input id="invDate" type="date" />
+                            </div>
+                        </div>
+                        <div class="split" style="margin-top:10px">
+                            <div class="col">
+                                <label>Nombre del amigo (opcional)</label>
+                                <input id="invFriendName" placeholder="Ej: Diego / Valeria..." />
+                            </div>
+                            <div class="col">
+                                <label>Puntos</label>
+                                <input id="invPoints" type="number" min="0" step="1" />
+                            </div>
+                        </div>
+                        <div class="hr"></div>
+                        <button class="btn good" id="btnAddInv">Registrar investidura</button>
+                        <div class="hint" style="margin-top:10px">
+                            Por defecto: <b>+20</b> puntos por Amigo investido (configurable en Ajustes).
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Historial de investidos</h2>
+                        <div style="margin-top:10px; overflow:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Conquistador</th>
+                                        <th>Amigo</th>
+                                        <th class="right">Puntos</th>
+                                        <th class="right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BONOS / DESCUENTOS -->
+            <section class="section" id="bonos">
+                <div class="two">
+                    <div class="card">
+                        <h2>Agregar bono o descuento</h2>
+                        <div class="split">
+                            <div class="col">
+                                <label>Conquistador</label>
+                                <select id="adjMember"></select>
+                            </div>
+                            <div class="col">
+                                <label>Fecha</label>
+                                <input id="adjDate" type="date" />
+                            </div>
+                        </div>
+                        <div class="split" style="margin-top:10px">
+                            <div class="col">
+                                <label>Tipo</label>
+                                <select id="adjType">
+                                    <option value="bonus">Bono (suma)</option>
+                                    <option value="deduction">Descuento (resta)</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label>Puntos</label>
+                                <input id="adjPoints" type="number" step="1" />
+                            </div>
+                        </div>
+                        <label style="margin-top:10px">Motivo (obligatorio)</label>
+                        <input id="adjReason"
+                            placeholder="Ej: Lideró servicio / falta de respeto / llegó tarde reiterado..." />
+                        <div class="hr"></div>
+                        <button class="btn primary" id="btnAddAdj">Guardar</button>
+
+                        <div class="hint" style="margin-top:10px">
+                            Recomendación: descuentos pequeños (-2/-5/-10) y siempre con explicación.
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Historial de bonos / descuentos</h2>
+                        <div style="margin-top:10px; overflow:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Conquistador</th>
+                                        <th>Motivo</th>
+                                        <th class="right">Puntos</th>
+                                        <th class="right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adjBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PREMIOS -->
+            <section class="section" id="premios">
+                <div class="two">
+                    <div class="card">
+                        <h2>Catálogo de premios (subasta)</h2>
+                        <div class="split">
+                            <div class="col">
+                                <label>Nombre premio</label>
+                                <input id="prizeName"
+                                    placeholder="Ej: Gift card Temu / Pulsera paracord / Linterna..." />
+                            </div>
+                            <div class="col" style="max-width:220px">
+                                <label>Temporada</label>
+                                <select id="prizeSeason">
+                                    <option value="sep">Subasta Septiembre</option>
+                                    <option value="dec">Subasta Diciembre</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="split" style="margin-top:10px">
+                            <div class="col">
+                                <label>Costo (puntos)</label>
+                                <input id="prizeCost" type="number" min="0" step="1" />
+                            </div>
+                            <div class="col">
+                                <label>Stock</label>
+                                <input id="prizeStock" type="number" min="0" step="1" />
+                            </div>
+                        </div>
+                        <label style="margin-top:10px">Descripción (opcional)</label>
+                        <input id="prizeDesc" placeholder="Ej: Ideal campamento / accesorio útil / premio grande..." />
+                        <div class="hr"></div>
+                        <button class="btn good" id="btnAddPrize">Agregar / actualizar premio</button>
+                        <div class="hint" style="margin-top:10px">
+                            En una subasta real, el “costo” puede ser el precio base. Puedes dejar que oferten por
+                            encima.
+                            Para mantenerlo simple aquí se maneja como canje directo (resta puntos + reduce stock).
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Premios + Canje</h2>
+                        <div class="split">
+                            <div class="col">
+                                <label>Filtrar temporada</label>
+                                <select id="prizeFilterSeason">
+                                    <option value="all">Todas</option>
+                                    <option value="sep">Septiembre</option>
+                                    <option value="dec">Diciembre</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label>Conquistador para canje</label>
+                                <select id="redeemMember"></select>
+                            </div>
+                        </div>
+                        <div class="hint" style="margin-top:10px">
+                            Canje = “compra” con puntos. Si no alcanza, no deja canjear (configurable).
+                        </div>
+                        <div style="margin-top:10px; overflow:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Temporada</th>
+                                        <th>Premio</th>
+                                        <th>Stock</th>
+                                        <th class="right">Costo</th>
+                                        <th class="right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="prizeBody"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="hr"></div>
+                        <h2>Historial de canjes</h2>
+                        <div style="margin-top:10px; overflow:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Conquistador</th>
+                                        <th>Premio</th>
+                                        <th class="right">Puntos</th>
+                                        <th class="right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="redeemBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RANKING -->
+            <section class="section" id="ranking">
+                <div class="card">
+                    <div class="split">
+                        <div class="col">
+                            <h2>Ranking completo</h2>
+                            <div class="hint">Ordenado por saldo (puntos acumulados - canjeados). Puedes exportar el
+                                JSON para reportes.</div>
+                        </div>
+                        <div class="col" style="max-width:260px">
+                            <label>Filtrar por unidad</label>
+                            <select id="rankUnit">
+                                <option value="all">Todas</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:10px; overflow:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Conquistador</th>
+                                    <th>Unidad</th>
+                                    <th class="right">Acumulado</th>
+                                    <th class="right">Canjeado</th>
+                                    <th class="right">Saldo</th>
+                                    <th class="right">Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rankBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AJUSTES -->
+            <section class="section" id="ajustes">
+                <div class="two">
+                    <div class="card">
+                        <h2>Valores de puntaje (configurable)</h2>
+                        <div class="split">
+                            <div class="col">
+                                <label>Biblia</label>
+                                <input id="cfgBible" type="number" step="1" />
+                            </div>
+                            <div class="col">
+                                <label>Pañoleta</label>
+                                <input id="cfgScarf" type="number" step="1" />
+                            </div>
+                        </div>
+                        <div class="split" style="margin-top:10px">
+                            <div class="col">
+                                <label>Puntualidad</label>
+                                <input id="cfgPunctual" type="number" step="1" />
+                            </div>
+                            <div class="col">
+                                <label>Cuadernillo</label>
+                                <input id="cfgNotebook" type="number" step="1" />
+                            </div>
+                        </div>
+                        <div class="split" style="margin-top:10px">
+                            <div class="col">
+                                <label>Amigo investido</label>
+                                <input id="cfgInvested" type="number" step="1" />
+                            </div>
+                            <div class="col">
+                                <label>Evento (participación)</label>
+                                <input id="cfgEvent" type="number" step="1" />
+                            </div>
+                        </div>
+                        <div class="hr"></div>
+                        <div class="split">
+                            <div class="col">
+                                <label>Bloquear canjes si no alcanza saldo</label>
+                                <select id="cfgBlockRedeem">
+                                    <option value="true">Sí (recomendado)</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label>Temporada (texto)</label>
+                                <input id="cfgSeasonLabel" />
+                            </div>
+                        </div>
+                        <div class="hr"></div>
+                        <button class="btn primary" id="btnSaveCfg">Guardar ajustes</button>
+                        <div class="hint" style="margin-top:10px">
+                            Esto te permite cambiar puntajes sin tocar código.
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Reglas (guía rápida)</h2>
+                        <div class="hint">
+                            <b>Movimientos</b>: todo lo que suma/resta/canjea puntos se guarda como movimiento
+                            (ledger).<br><br>
+                            <b>Saldo</b> = Acumulado - Canjeado.<br><br>
+                            <b>Reunión</b>: checkboxes + bono opcional.<br>
+                            <b>Evento</b>: +10 por defecto (configurable).<br>
+                            <b>Investido</b>: +20 por defecto (configurable).<br>
+                            <b>Bono/Descuento</b>: manual con motivo obligatorio.<br>
+                            <b>Canje</b>: resta puntos y reduce stock de premio.<br><br>
+                            Si quieres, la siguiente iteración puede incluir:
+                            <ul>
+                                <li>Registro masivo por reunión (lista completa con checks)</li>
+                                <li>Modo “subasta real” con pujas</li>
+                                <li>Login por roles (directiva vs consejeros)</li>
+                                <li>Impresión de reportes / PDF</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="hr"></div>
+                    <h2>Eventos próximos (editable)</h2>
+                    <div class="hint">Se usa para la pantalla de Inicio. Formato: fecha, nombre, lugar, puntos.</div>
+
+                    <div class="split" style="margin-top:10px">
+                        <div class="col">
+                            <label>Fecha</label>
+                            <input id="uDate" type="date" />
+                        </div>
+                        <div class="col">
+                            <label>Evento</label>
+                            <input id="uName" placeholder="Ej: Camporee / Servicio / Conquistador por un día" />
+                        </div>
+                    </div>
+
+                    <div class="split" style="margin-top:10px">
+                        <div class="col">
+                            <label>Lugar</label>
+                            <input id="uPlace" placeholder="Ej: Parque / Iglesia / Campamento" />
+                        </div>
+                        <div class="col" style="max-width:220px">
+                            <label>Puntos</label>
+                            <input id="uPts" type="number" step="1" />
+                        </div>
+                        <div class="col" style="max-width:220px">
+                            <label>&nbsp;</label>
+                            <button class="btn good" id="btnAddUpcoming">Agregar</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:10px; overflow:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Evento</th>
+                                    <th>Lugar</th>
+                                    <th class="right">Pts</th>
+                                    <th class="right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="upcomingAdminBody"></tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <input type="file" id="importFile" accept="application/json" style="display:none" />
+
+    <script src="app/script.js"></script>
+    <script src="app/config.js"></script>
+
+    <!-- <script>
+        /* ==========================
+           MODELO (LocalStorage)
+           ========================== */
+
+        const LS_KEY = "conquis_score_app_v1";
+
+        function uid(prefix = "id") {
+            return prefix + "_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+        }
+        function todayISO() {
+            const d = new Date();
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            const dd = String(d.getDate()).padStart(2, "0");
+            return `${yyyy}-${mm}-${dd}`;
+        }
+        function nowISO() {
+            return new Date().toISOString();
+        }
+        function safeInt(v, fallback = 0) {
+            const n = Number(v);
+            return Number.isFinite(n) ? Math.round(n) : fallback;
+        }
+        function fmtDate(iso) {
+            if (!iso) return "—";
+            // iso: YYYY-MM-DD
+            return iso;
+        }
+        function escapeHtml(s) {
+            return (s ?? "").toString()
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function defaultState() {
+            return {
+                meta: {
+                    updatedAt: nowISO()
+                },
+                config: {
+                    seasonLabel: "2026",
+                    points: {
+                        bible: 1,
+                        scarf: 1,
+                        punctual: 2,
+                        notebook: 1,
+                        investedFriend: 20,
+                        eventParticipation: 10
+                    },
+                    blockRedeemIfInsufficient: true
+                },
+                members: [
+                    { id: uid("m"), name: "Bruno Paz (demo)", unit: "Halcones", active: true }
+                ],
+                prizes: [
+                    { id: uid("p"), name: "Pulsera paracord con silbato y brújula", season: "sep", cost: 180, stock: 3, desc: "Útil para campamentos" },
+                    { id: uid("p"), name: "Gift card Temu", season: "dec", cost: 380, stock: 2, desc: "Premio grande" },
+                    { id: uid("p"), name: "Linterna profesional", season: "dec", cost: 280, stock: 2, desc: "" }
+                ],
+                home: {
+                    earnRules: [
+                        { label: "Biblia", points: 1 },
+                        { label: "Pañoleta", points: 1 },
+                        { label: "Puntualidad", points: 2 },
+                        { label: "Cuadernillo", points: 1 },
+                        { label: "Participación en evento", points: 10 },
+                        { label: "Amigo investido", points: 20 },
+                    ],
+                    loseRules: [
+                        { label: "Llegar tarde reiteradamente", points: -2 },
+                        { label: "Olvidar uniforme reiteradamente", points: -2 },
+                        { label: "No respetar indicaciones", points: -3 },
+                        { label: "Interrumpir actividades", points: -5 },
+                        { label: "Falta de respeto", points: -5 },
+                        { label: "Peleas", points: -10 },
+                    ]
+                },
+                upcomingEvents: [
+                    { id: uid("u"), date: "2026-03-14", name: "Servicio comunitario", place: "Parque", points: 10 },
+                    { id: uid("u"), date: "2026-04-11", name: "Caminata / Marcha", place: "Iglesia", points: 10 }
+                ],
+
+                auth: {
+                    // SOLO UI (no seguridad real). Para seguridad real, usar Worker.
+                    adminEnabled: false
+                },
+
+                ledger: [
+                    // movimientos: {id, at, date, type, memberId, points, detail, ref?}
+                    // type: meeting, event, invested, adjustment, redeem
+                ]
+            };
+        }
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(LS_KEY);
+                if (!raw) return defaultState();
+                const obj = JSON.parse(raw);
+                if (!obj || !obj.config || !obj.members || !obj.ledger || !obj.prizes) return defaultState();
+                return obj;
+            } catch (e) {
+                return defaultState();
+            }
+        }
+        function saveState() {
+            state.meta.updatedAt = nowISO();
+            localStorage.setItem(LS_KEY, JSON.stringify(state));
+            renderAll();
+        }
+
+        let state = loadState();
+
+        /* ==========================
+           CÁLCULOS
+           ========================== */
+        function memberById(id) { return state.members.find(m => m.id === id); }
+
+        function computeTotals() {
+            // acumulado: suma puntos (incluye positivos y negativos) EXCEPTO canjes (que son negativos también, pero los separaremos)
+            const totals = {};
+            for (const m of state.members) {
+                totals[m.id] = { earned: 0, redeemed: 0, balance: 0 };
+            }
+            for (const mv of state.ledger) {
+                if (!totals[mv.memberId]) totals[mv.memberId] = { earned: 0, redeemed: 0, balance: 0 };
+                if (mv.type === "redeem") {
+                    totals[mv.memberId].redeemed += Math.abs(safeInt(mv.points, 0));
+                } else {
+                    totals[mv.memberId].earned += safeInt(mv.points, 0);
+                }
+            }
+            for (const id in totals) {
+                totals[id].balance = totals[id].earned - totals[id].redeemed;
+            }
+            return totals;
+        }
+
+        function sortedRanking(unit = "all") {
+            const totals = computeTotals();
+            const members = state.members
+                .filter(m => m.active)
+                .filter(m => unit === "all" ? true : (m.unit || "").toLowerCase() === unit.toLowerCase());
+
+            return members
+                .map(m => ({
+                    ...m,
+                    earned: totals[m.id]?.earned ?? 0,
+                    redeemed: totals[m.id]?.redeemed ?? 0,
+                    balance: totals[m.id]?.balance ?? 0
+                }))
+                .sort((a, b) => (b.balance - a.balance) || (b.earned - a.earned) || a.name.localeCompare(b.name));
+        }
+
+        function clubTotalPoints() {
+            const totals = computeTotals();
+            let total = 0;
+            for (const id in totals) {
+                total += (totals[id].earned - totals[id].redeemed);
+            }
+            return total;
+        }
+
+        /* ==========================
+           UI: TABS
+           ========================== */
+        const tabs = document.getElementById("tabs");
+        tabs.addEventListener("click", (e) => {
+            const btn = e.target.closest(".tab");
+            if (!btn) return;
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            btn.classList.add("active");
+            const tab = btn.dataset.tab;
+            document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+            document.getElementById(tab).classList.add("active");
+        });
+
+        /* ==========================
+           RENDER HELPERS
+           ========================== */
+        function fillMemberSelect(sel, includeAll = false) {
+            const activeMembers = [...state.members].sort((a, b) => a.name.localeCompare(b.name));
+            sel.innerHTML = "";
+            if (includeAll) {
+                const opt = document.createElement("option");
+                opt.value = "all"; opt.textContent = "Todos";
+                sel.appendChild(opt);
+            }
+            for (const m of activeMembers) {
+                const opt = document.createElement("option");
+                opt.value = m.id;
+                opt.textContent = `${m.name}${m.active ? "" : " (inactivo)"}${m.unit ? " — " + m.unit : ""}`;
+                sel.appendChild(opt);
+            }
+        }
+
+        function uniqueUnits() {
+            const s = new Set();
+            for (const m of state.members) {
+                if (m.unit) s.add(m.unit.trim());
+            }
+            return [...s].filter(Boolean).sort((a, b) => a.localeCompare(b));
+        }
+
+        /* ==========================
+           DASHBOARD
+           ========================== */
+        function renderDashboard() {
+            document.getElementById("seasonPill").textContent = `Temporada: ${state.config.seasonLabel || "—"}`;
+            document.getElementById("kpiUpdated").textContent = new Date(state.meta.updatedAt).toLocaleString();
+            const activeCount = state.members.filter(m => m.active).length;
+            document.getElementById("kpiMembers").textContent = activeCount;
+            document.getElementById("kpiTotalPoints").textContent = clubTotalPoints();
+
+            // top10
+            const rank = sortedRanking("all").slice(0, 10);
+            const tbody = document.getElementById("top10Body");
+            tbody.innerHTML = "";
+            rank.forEach((m, idx) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+      <td>${idx + 1}</td>
+      <td>${escapeHtml(m.name)}</td>
+      <td>${escapeHtml(m.unit || "—")}</td>
+      <td class="right">${m.earned}</td>
+      <td class="right">${m.redeemed}</td>
+      <td class="right"><b>${m.balance}</b></td>
+    `;
+                tbody.appendChild(tr);
+            });
+
+            // recent
+            const recent = [...state.ledger]
+                .sort((a, b) => (b.at || "").localeCompare(a.at || ""))
+                .slice(0, 15);
+
+            const rbody = document.getElementById("recentBody");
+            rbody.innerHTML = "";
+            for (const mv of recent) {
+                const m = memberById(mv.memberId);
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+      <td>${fmtDate(mv.date)}</td>
+      <td>${escapeHtml(mv.type)}</td>
+      <td>${escapeHtml(m?.name || "—")}</td>
+      <td>${escapeHtml(mv.detail || "")}</td>
+      <td class="right">${safeInt(mv.points, 0)}</td>
+    `;
+                rbody.appendChild(tr);
+            }
+        }
+
+        function renderHome() {
+            // banner opcional (si existe)
+            const banner = document.getElementById("homeBanner");
+            banner.onerror = () => banner.style.display = "none";
+            banner.onload = () => banner.style.display = "block";
+            banner.src = "assets/banner.jpg"; // si no existe, se oculta
+
+            // Earn table
+            const earnBody = document.getElementById("earnTable");
+            earnBody.innerHTML = "";
+            (state.home?.earnRules || []).forEach(r => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${escapeHtml(r.label)}</td><td class="right"><b>${safeInt(r.points, 0)}</b></td>`;
+                earnBody.appendChild(tr);
+            });
+
+            // Lose table
+            const loseBody = document.getElementById("loseTable");
+            loseBody.innerHTML = "";
+            (state.home?.loseRules || []).forEach(r => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${escapeHtml(r.label)}</td><td class="right"><b>${safeInt(r.points, 0)}</b></td>`;
+                loseBody.appendChild(tr);
+            });
+
+            renderUpcoming();
+            renderAdminStatus();
+        }
+
+        function renderUpcoming() {
+            const limit = safeInt(document.getElementById("homeUpcomingLimit")?.value, 10);
+            const today = todayISO();
+
+            const rows = (state.upcomingEvents || [])
+                .filter(e => (e.date || "") >= today)  // solo futuros
+                .sort((a, b) => (a.date || "").localeCompare(b.date || ""))
+                .slice(0, limit);
+
+            const tbody = document.getElementById("upcomingBody");
+            tbody.innerHTML = "";
+            if (rows.length === 0) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td colspan="4" class="muted">No hay eventos próximos configurados.</td>`;
+                tbody.appendChild(tr);
+                return;
+            }
+            rows.forEach(ev => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                <td>${fmtDate(ev.date)}</td>
+                <td>${escapeHtml(ev.name)}</td>
+                <td>${escapeHtml(ev.place || "—")}</td>
+                <td class="right">${safeInt(ev.points, 0)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Admin list (ajustes)
+            renderUpcomingAdmin();
+        }
+
+        function renderUpcomingAdmin() {
+            const tbody = document.getElementById("upcomingAdminBody");
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            const rows = [...(state.upcomingEvents || [])]
+                .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+
+            rows.forEach(ev => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                <td>${fmtDate(ev.date)}</td>
+                <td>${escapeHtml(ev.name)}</td>
+                <td>${escapeHtml(ev.place || "—")}</td>
+                <td class="right">${safeInt(ev.points, 0)}</td>
+                <td class="right">
+                    <button class="btn small danger" data-del-up="${ev.id}" ${state.auth?.adminEnabled ? "" : "disabled"}>Borrar</button>
+                </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById("homeUpcomingLimit")?.addEventListener("change", renderUpcoming);
+
+        document.getElementById("btnAddUpcoming")?.addEventListener("click", () => {
+            if (!state.auth?.adminEnabled) {
+                alert("Modo administración requerido para editar.");
+                return;
+            }
+            const date = document.getElementById("uDate").value || todayISO();
+            const name = (document.getElementById("uName").value || "").trim();
+            const place = (document.getElementById("uPlace").value || "").trim();
+            const points = safeInt(document.getElementById("uPts").value, state.config.points.eventParticipation);
+
+            if (!name) { alert("Evento obligatorio."); return; }
+
+            state.upcomingEvents.push({ id: uid("u"), date, name, place, points });
+
+            document.getElementById("uName").value = "";
+            document.getElementById("uPlace").value = "";
+            document.getElementById("uPts").value = "";
+
+            saveState();
+        });
+
+        document.getElementById("upcomingAdminBody")?.addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (!btn) return;
+            const id = btn.dataset.delUp;
+            if (!id) return;
+            if (!state.auth?.adminEnabled) {
+                alert("Modo administración requerido.");
+                return;
+            }
+            if (!confirm("¿Borrar este evento?")) return;
+            state.upcomingEvents = state.upcomingEvents.filter(x => x.id !== id);
+            saveState();
+        });
+
+
+        /* ==========================
+           MIEMBROS
+           ========================== */
+        let editingMemberId = null;
+
+        function renderMembers() {
+            const q = (document.getElementById("memberSearch").value || "").toLowerCase().trim();
+            const filter = document.getElementById("memberFilter").value;
+
+            const list = state.members
+                .filter(m => {
+                    if (filter === "active" && !m.active) return false;
+                    if (filter === "inactive" && m.active) return false;
+                    return true;
+                })
+                .filter(m => {
+                    if (!q) return true;
+                    return (m.name || "").toLowerCase().includes(q) || (m.unit || "").toLowerCase().includes(q);
+                })
+                .sort((a, b) => a.name.localeCompare(b.name));
+
+            const tbody = document.getElementById("memberBody");
+            tbody.innerHTML = "";
+            for (const m of list) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+      <td>${escapeHtml(m.name)}</td>
+      <td>${escapeHtml(m.unit || "—")}</td>
+      <td>${m.active ? `<span class="tag"><span class="dot ok"></span>Activo</span>` : `<span class="tag"><span class="dot warn"></span>Inactivo</span>`}</td>
+      <td class="right">
+        <button class="btn small" data-act="edit" data-id="${m.id}">Editar</button>
+        <button class="btn small danger" data-act="toggle" data-id="${m.id}">${m.active ? "Inactivar" : "Activar"}</button>
+      </td>
+    `;
+                tbody.appendChild(tr);
+            }
+
+            // refresh selects
+            fillMemberSelect(document.getElementById("meetMember"));
+            fillMemberSelect(document.getElementById("eventMember"));
+            fillMemberSelect(document.getElementById("invMember"));
+            fillMemberSelect(document.getElementById("adjMember"));
+            fillMemberSelect(document.getElementById("redeemMember"));
+            fillMemberSelect(document.getElementById("meetFilterMember"), true);
+            fillMemberSelect(document.getElementById("eventFilterMember"), true);
+        }
+
+        document.getElementById("btnSaveMember").addEventListener("click", () => {
+            const name = (document.getElementById("mName").value || "").trim();
+            const unit = (document.getElementById("mUnit").value || "").trim();
+            const active = document.getElementById("mActive").value === "true";
+            if (!name) { alert("Nombre es obligatorio."); return; }
+
+            if (editingMemberId) {
+                const m = memberById(editingMemberId);
+                if (!m) { editingMemberId = null; return; }
+                m.name = name; m.unit = unit; m.active = active;
+                editingMemberId = null;
+            } else {
+                state.members.push({ id: uid("m"), name, unit, active });
+            }
+
+            document.getElementById("mName").value = "";
+            document.getElementById("mUnit").value = "";
+            document.getElementById("mActive").value = "true";
+            saveState();
+        });
+
+        document.getElementById("memberBody").addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (!btn) return;
+            const id = btn.dataset.id;
+            const act = btn.dataset.act;
+            const m = memberById(id);
+            if (!m) return;
+
+            if (act === "edit") {
+                editingMemberId = id;
+                document.getElementById("mName").value = m.name;
+                document.getElementById("mUnit").value = m.unit || "";
+                document.getElementById("mActive").value = m.active ? "true" : "false";
+                alert("Editando miembro. Ajusta y presiona Guardar.");
+            }
+            if (act === "toggle") {
+                m.active = !m.active;
+                saveState();
+            }
+        });
+
+        document.getElementById("memberSearch").addEventListener("input", renderMembers);
+        document.getElementById("memberFilter").addEventListener("change", renderMembers);
+
+        /* ==========================
+           REUNIONES
+           ========================== */
+        function refreshMeetingPointsUI() {
+            const pts = state.config.points;
+            document.getElementById("pBible").textContent = pts.bible;
+            document.getElementById("pScarf").textContent = pts.scarf;
+            document.getElementById("pPunctual").textContent = pts.punctual;
+            document.getElementById("pNotebook").textContent = pts.notebook;
+
+            const meetingPoints = computeMeetingPoints();
+            document.getElementById("meetPoints").textContent = meetingPoints;
+        }
+
+        function computeMeetingPoints() {
+            const pts = state.config.points;
+            let total = 0;
+            if (document.getElementById("chkBible").checked) total += pts.bible;
+            if (document.getElementById("chkScarf").checked) total += pts.scarf;
+            if (document.getElementById("chkPunctual").checked) total += pts.punctual;
+            if (document.getElementById("chkNotebook").checked) total += pts.notebook;
+
+            const b = document.getElementById("meetBonus").value;
+            if (b && b !== "0") {
+                const n = parseInt(b, 10);
+                if (Number.isFinite(n)) total += n;
+                else {
+                    // values like 5b, 5c
+                    const n2 = parseInt(b.replace(/[^\d]/g, ""), 10);
+                    if (Number.isFinite(n2)) total += n2;
+                }
+            }
+            return total;
+        }
+
+        ["chkBible", "chkScarf", "chkPunctual", "chkNotebook", "meetBonus"].forEach(id => {
+            document.getElementById(id).addEventListener("change", refreshMeetingPointsUI);
+        });
+
+        document.getElementById("btnAddMeeting").addEventListener("click", () => {
+            const date = document.getElementById("meetDate").value || todayISO();
+            const type = document.getElementById("meetType").value;
+            const memberId = document.getElementById("meetMember").value;
+            if (!memberId) { alert("Selecciona un conquistador."); return; }
+
+            const pts = computeMeetingPoints();
+            if (pts === 0) { if (!confirm("Puntos 0. ¿Registrar igual?")) return; }
+
+            const detailParts = [];
+            if (document.getElementById("chkBible").checked) detailParts.push("Biblia");
+            if (document.getElementById("chkScarf").checked) detailParts.push("Pañoleta");
+            if (document.getElementById("chkPunctual").checked) detailParts.push("Puntual");
+            if (document.getElementById("chkNotebook").checked) detailParts.push("Cuadernillo");
+            const bonusVal = document.getElementById("meetBonus").value;
+            if (bonusVal !== "0") detailParts.push("Bono");
+            const notes = (document.getElementById("meetNotes").value || "").trim();
+            const detail = `${type === "sabado" ? "Reunión sábado" : "Reunión domingo"} — ${detailParts.join(", ")}${notes ? " | " + notes : ""}`;
+
+            state.ledger.push({
+                id: uid("mv"),
+                at: nowISO(),
+                date,
+                type: "meeting",
+                memberId,
+                points: pts,
+                detail
+            });
+
+            // reset checks
+            ["chkBible", "chkScarf", "chkPunctual", "chkNotebook"].forEach(id => document.getElementById(id).checked = false);
+            document.getElementById("meetBonus").value = "0";
+            document.getElementById("meetNotes").value = "";
+            refreshMeetingPointsUI();
+
+            saveState();
+        });
+
+        function renderMeetings() {
+            const from = document.getElementById("meetFrom").value;
+            const to = document.getElementById("meetTo").value;
+            const memberFilter = document.getElementById("meetFilterMember").value;
+
+            const rows = state.ledger
+                .filter(mv => mv.type === "meeting")
+                .filter(mv => memberFilter === "all" ? true : mv.memberId === memberFilter)
+                .filter(mv => !from || mv.date >= from)
+                .filter(mv => !to || mv.date <= to)
+                .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+            const tbody = document.getElementById("meetBody");
+            tbody.innerHTML = "";
+            for (const mv of rows) {
+                const m = memberById(mv.memberId);
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+      <td>${fmtDate(mv.date)}</td>
+      <td>${escapeHtml((mv.detail || "").includes("domingo") ? "domingo" : "sábado")}</td>
+      <td>${escapeHtml(m?.name || "—")}</td>
+      <td>${escapeHtml(mv.detail || "")}</td>
+      <td class="right">${safeInt(mv.points, 0)}</td>
+      <td class="right"><button class="btn small danger" data-del="${mv.id}">Borrar</button></td>
+    `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        document.getElementById("meetBody").addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (!btn) return;
+            const id = btn.dataset.del;
+            if (!id) return;
+            if (!confirm("¿Borrar este registro de reunión?")) return;
+            state.ledger = state.ledger.filter(mv => mv.id !== id);
+            saveState();
+        });
+
+        ["meetFrom", "meetTo", "meetFilterMember"].forEach(id => {
+            document.getElementById(id).addEventListener("change", renderMeetings);
+        });
+
+        /* ==========================
+           EVENTOS
+           ========================== */
+        document.getElementById("btnAddEvent").addEventListener("click", () => {
+            const name = (document.getElementById("eventName").value || "").trim();
+            const date = document.getElementById("eventDate").value || todayISO();
+            const memberId = document.getElementById("eventMember").value;
+            const points = safeInt(document.getElementById("eventPoints").value, state.config.points.eventParticipation);
+            const notes = (document.getElementById("eventNotes").value || "").trim();
+
+            if (!name) { alert("Nombre del evento es obligatorio."); return; }
+            if (!memberId) { alert("Selecciona un conquistador."); return; }
+
+            state.ledger.push({
+                id: uid("mv"),
+                at: nowISO(),
+                date,
+                type: "event",
+                memberId,
+                points,
+                detail: `${name}${notes ? " | " + notes : ""}`
+            });
+
+            document.getElementById("eventName").value = "";
+            document.getElementById("eventNotes").value = "";
+            saveState();
+        });
+
+        function renderEvents() {
+            const q = (document.getElementById("eventSearch").value || "").toLowerCase().trim();
+            const memberFilter = document.getElementById("eventFilterMember").value;
+
+            const rows = state.ledger
+                .filter(mv => mv.type === "event")
+                .filter(mv => memberFilter === "all" ? true : mv.memberId === memberFilter)
+                .filter(mv => !q || (mv.detail || "").toLowerCase().includes(q))
+                .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+            const tbody = document.getElementById("eventBody");
+            tbody.innerHTML = "";
+            for (const mv of rows) {
+                const m = memberById(mv.memberId);
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+      <td>${fmtDate(mv.date)}</td>
+      <td>${escapeHtml((mv.detail || "").split("|")[0].trim())}</td>
+      <td>${escapeHtml(m?.name || "—")}</td>
+      <td>${escapeHtml(mv.detail || "")}</td>
+      <td class="right">${safeInt(mv.points, 0)}</td>
+      <td class="right"><button class="btn small danger" data-del="${mv.id}">Borrar</button></td>
+    `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        document.getElementById("eventBody").addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (!btn) return;
+            const id = btn.dataset.del;
+            if (!id) return;
+            if (!confirm("¿Borrar este registro de evento?")) return;
+            state.ledger = state.ledger.filter(mv => mv.id !== id);
+            saveState();
+        });
+        document.getElementById("eventSearch").addEventListener("input", renderEvents);
+        document.getElementById("eventFilterMember").addEventListener("change", renderEvents);
+
+        /* ==========================
+           INVESTIDOS
+           ========================== */
+        document.getElementById("btnAddInv").addEventListener("click", () => {
+            const memberId = document.getElementById("invMember").value;
+            const date = document.getElementById("invDate").value || todayISO();
+            const friendName = (document.getElementById("invFriendName").value || "").trim();
+            const points = safeInt(document.getElementById("invPoints").value, state.config.points.investedFriend);
+
+            if (!memberId) { alert("Selecciona un conquistador."); return; }
+
+            state.ledger.push({
+                id: uid("mv"),
+                at: nowISO(),
+                date,
+                type: "invested",
+                memberId,
+                points,
+                detail: friendName ? `Amigo: ${friendName}` : "Amigo investido"
+            });
+
+            document.getElementById("invFriendName").value = "";
+            saveState();
+        });
+
+        function renderInvested() {
+            const rows = state.ledger
+                .filter(mv => mv.type === "invested")
+                .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+            const tbody = document.getElementById("invBody");
+            tbody.innerHTML = "";
+            for (const mv of rows) {
+                const m = memberById(mv.memberId);
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+      <td>${fmtDate(mv.date)}</td>
+      <td>${escapeHtml(m?.name || "—")}</td>
+      <td>${escapeHtml(mv.detail?.replace("Amigo:", "").trim() || "—")}</td>
+      <td class="right">${safeInt(mv.points, 0)}</td>
+      <td class="right"><button class="btn small danger" data-del="${mv.id}">Borrar</button></td>
+    `;
+                tbody.appendChild(tr);
+            }
+        }
+        document.getElementById("invBody").addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (!btn) return;
+            const id = btn.dataset.del;
+            if (!id) return;
+            if (!confirm("¿Borrar este registro de investido?")) return;
+            state.ledger = state.ledger.filter(mv => mv.id !== id);
+            saveState();
+        });
+
+        /* ==========================
+           BONOS / DESCUENTOS
+           ========================== */
+        document.getElementById("btnAddAdj").addEventListener("click", () => {
+            const memberId = document.getElementById("adjMember").value;
+            const date = document.getElementById("adjDate").value || todayISO();
+            const type = document.getElementById("adjType").value;
+            const pointsRaw = safeInt(document.getElementById("adjPoints").value, 0);
+            const reason = (document.getElementById("adjReason").value || "").trim();
+
+            if (!memberId) { alert("Selecciona un conquistador."); return; }
+            if (!reason) { alert("Motivo es obligatorio."); return; }
+            if (pointsRaw === 0) { alert("Puntos no puede ser 0."); return; }
+
+            const points = (type === "deduction") ? -Math.abs(pointsRaw) : Math.abs(pointsRaw);
+
+            state.ledger.push({
+                id: uid("mv"),
+                at: nowISO(),
+                date,
+                type: "adjustment",
+                memberId,
+                points,
+                detail: `${type === "deduction" ? "Descuento" : "Bono"} — ${reason}`
+            });
+
+            document.getElementById("adjPoints").value = "";
+            document.getElementById("adjReason").value = "";
+            saveState();
+        });
+
+        function renderAdjustments() {
+            const rows = state.ledger
+                .filter(mv => mv.type === "adjustment")
+                .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+            const tbody = document.getElementById("adjBody");
+            tbody.innerHTML = "";
+            for (const mv of rows) {
+                const m = memberById(mv.memberId);
+                const isNeg = safeInt(mv.points, 0) < 0;
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+      <td>${fmtDate(mv.date)}</td>
+      <td>${isNeg ? `<span class="tag"><span class="dot danger"></span>Descuento</span>` : `<span class="tag"><span class="dot ok"></span>Bono</span>`}</td>
+      <td>${escapeHtml(m?.name || "—")}</td>
+      <td>${escapeHtml(mv.detail || "")}</td>
+      <td class="right">${safeInt(mv.points, 0)}</td>
+      <td class="right"><button class="btn small danger" data-del="${mv.id}">Borrar</button></td>
+    `;
+                tbody.appendChild(tr);
+            }
+        }
+        document.getElementById("adjBody").addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (!btn) return;
+            const id = btn.dataset.del;
+            if (!id) return;
+            if (!confirm("¿Borrar este bono/descuento?")) return;
+            state.ledger = state.ledger.filter(mv => mv.id !== id);
+            saveState();
+        });
+
+        /* ==========================
+           PREMIOS + CANJE
+           ========================== */
+        document.getElementById("btnAddPrize").addEventListener("click", () => {
+            const name = (document.getElementById("prizeName").value || "").trim();
+            const season = document.getElementById("prizeSeason").value;
+            const cost = safeInt(document.getElementById("prizeCost").value, 0);
+            const stock = safeInt(document.getElementById("prizeStock").value, 0);
+            const desc = (document.getElementById("prizeDesc").value || "").trim();
+
+            if (!name) { alert("Nombre del premio es obligatorio."); return; }
+            if (cost <= 0) { alert("Costo debe ser > 0."); return; }
+            if (stock < 0) { alert("Stock inválido."); return; }
+
+            // si existe mismo nombre + season, actualiza (simple)
+            const existing = state.prizes.find(p => p.name.toLowerCase() === name.toLowerCase() && p.season === season);
+            if (existing) {
+                existing.cost = cost;
+                existing.stock = stock;
+                existing.desc = desc;
+            } else {
+                state.prizes.push({ id: uid("p"), name, season, cost, stock, desc });
+            }
+
+            document.getElementById("prizeName").value = "";
+            document.getElementById("prizeCost").value = "";
+            document.getElementById("prizeStock").value = "";
+            document.getElementById("prizeDesc").value = "";
+            saveState();
+        });
+
+        function renderPrizes() {
+            const seasonFilter = document.getElementById("prizeFilterSeason").value;
+            const memberId = document.getElementById("redeemMember").value;
+            const totals = computeTotals();
+            const bal = totals[memberId]?.balance ?? 0;
+
+            const rows = [...state.prizes]
+                .filter(p => seasonFilter === "all" ? true : p.season === seasonFilter)
+                .sort((a, b) => (a.season.localeCompare(b.season)) || (a.cost - b.cost) || a.name.localeCompare(b.name));
+
+            const tbody = document.getElementById("prizeBody");
+            tbody.innerHTML = "";
+            for (const p of rows) {
+                const seasonTxt = p.season === "sep" ? "Septiembre" : "Diciembre";
+                const canRedeem = p.stock > 0 && (!state.config.blockRedeemIfInsufficient || bal >= p.cost);
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+      <td>${seasonTxt}</td>
+      <td>${escapeHtml(p.name)}<div class="muted">${escapeHtml(p.desc || "")}</div></td>
+      <td>${p.stock}</td>
+      <td class="right"><b>${p.cost}</b></td>
+      <td class="right">
+        <button class="btn small ${canRedeem ? "good" : "danger"}" data-redeem="${p.id}" ${canRedeem ? "" : "disabled"}>
+          Canjear
+        </button>
+      </td>
+    `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        document.getElementById("prizeBody").addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (!btn) return;
+            const prizeId = btn.dataset.redeem;
+            if (!prizeId) return;
+
+            const memberId = document.getElementById("redeemMember").value;
+            const prize = state.prizes.find(p => p.id === prizeId);
+            const m = memberById(memberId);
+            if (!prize || !m) { alert("Selecciona miembro y premio."); return; }
+            if (prize.stock <= 0) { alert("Sin stock."); return; }
+
+            const totals = computeTotals();
+            const bal = totals[memberId]?.balance ?? 0;
+
+            if (state.config.blockRedeemIfInsufficient && bal < prize.cost) {
+                alert(`Saldo insuficiente. Saldo: ${bal}, costo: ${prize.cost}`);
+                return;
+            }
+
+            if (!confirm(`Confirmar canje:\n${m.name}\nPremio: ${prize.name}\nCosto: ${prize.cost} pts`)) return;
+
+            // reduce stock
+            prize.stock -= 1;
+
+            // movimiento de canje (redeem)
+            state.ledger.push({
+                id: uid("mv"),
+                at: nowISO(),
+                date: todayISO(),
+                type: "redeem",
+                memberId,
+                points: -Math.abs(prize.cost),
+                detail: `Canje — ${prize.name}`
+            });
+
+            saveState();
+        });
+
+        function renderRedeems() {
+            const rows = state.ledger
+                .filter(mv => mv.type === "redeem")
+                .sort((a, b) => (b.at || "").localeCompare(a.at || ""));
+
+            const tbody = document.getElementById("redeemBody");
+            tbody.innerHTML = "";
+            for (const mv of rows) {
+                const m = memberById(mv.memberId);
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+      <td>${fmtDate(mv.date)}</td>
+      <td>${escapeHtml(m?.name || "—")}</td>
+      <td>${escapeHtml((mv.detail || "").replace("Canje — ", ""))}</td>
+      <td class="right">${Math.abs(safeInt(mv.points, 0))}</td>
+      <td class="right"><button class="btn small danger" data-del="${mv.id}">Borrar</button></td>
+    `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        document.getElementById("redeemBody").addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (!btn) return;
+            const id = btn.dataset.del;
+            if (!id) return;
+            const mv = state.ledger.find(x => x.id === id);
+            if (!mv) return;
+
+            // al borrar canje, devolvemos stock si encontramos premio por nombre
+            if (!confirm("¿Borrar este canje? (devolverá 1 stock si existe el premio)")) return;
+
+            const prizeName = (mv.detail || "").replace("Canje — ", "").trim();
+            const prize = state.prizes.find(p => p.name.trim().toLowerCase() === prizeName.toLowerCase());
+            if (prize) prize.stock += 1;
+
+            state.ledger = state.ledger.filter(x => x.id !== id);
+            saveState();
+        });
+
+        document.getElementById("prizeFilterSeason").addEventListener("change", renderPrizes);
+        document.getElementById("redeemMember").addEventListener("change", renderPrizes);
+
+        /* ==========================
+           RANKING
+           ========================== */
+        function renderRanking() {
+            const unit = document.getElementById("rankUnit").value;
+            const totals = computeTotals();
+            const rows = sortedRanking(unit);
+
+            const tbody = document.getElementById("rankBody");
+            tbody.innerHTML = "";
+            rows.forEach((m, idx) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+      <td>${idx + 1}</td>
+      <td>${escapeHtml(m.name)}</td>
+      <td>${escapeHtml(m.unit || "—")}</td>
+      <td class="right">${m.earned}</td>
+      <td class="right">${m.redeemed}</td>
+      <td class="right"><b>${m.balance}</b></td>
+      <td class="right"><button class="btn small" data-detail="${m.id}">Ver</button></td>
+    `;
+                tbody.appendChild(tr);
+            });
+
+            // units dropdown
+            const unitSel = document.getElementById("rankUnit");
+            const units = uniqueUnits();
+            const current = unitSel.value || "all";
+            unitSel.innerHTML = `<option value="all">Todas</option>` + units.map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join("");
+            unitSel.value = units.includes(current) ? current : "all";
+        }
+
+        document.getElementById("rankUnit").addEventListener("change", renderRanking);
+        document.getElementById("rankBody").addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (!btn) return;
+            const memberId = btn.dataset.detail;
+            if (!memberId) return;
+
+            const m = memberById(memberId);
+            if (!m) return;
+            const rows = state.ledger
+                .filter(mv => mv.memberId === memberId)
+                .sort((a, b) => (b.at || "").localeCompare(a.at || ""))
+                .slice(0, 25);
+
+            const lines = rows.map(mv => `${mv.date} | ${mv.type} | ${mv.points} | ${mv.detail}`).join("\n");
+            alert(`Últimos 25 movimientos de ${m.name}:\n\n${lines || "Sin movimientos"}`);
+        });
+
+        /* ==========================
+           AJUSTES
+           ========================== */
+        function renderConfig() {
+            const p = state.config.points;
+            document.getElementById("cfgBible").value = p.bible;
+            document.getElementById("cfgScarf").value = p.scarf;
+            document.getElementById("cfgPunctual").value = p.punctual;
+            document.getElementById("cfgNotebook").value = p.notebook;
+            document.getElementById("cfgInvested").value = p.investedFriend;
+            document.getElementById("cfgEvent").value = p.eventParticipation;
+            document.getElementById("cfgBlockRedeem").value = String(state.config.blockRedeemIfInsufficient);
+            document.getElementById("cfgSeasonLabel").value = state.config.seasonLabel || "—";
+
+            // sync defaults
+            document.getElementById("eventPoints").value = p.eventParticipation;
+            document.getElementById("invPoints").value = p.investedFriend;
+
+            refreshMeetingPointsUI();
+        }
+
+        document.getElementById("btnSaveCfg").addEventListener("click", () => {
+            const p = state.config.points;
+            p.bible = safeInt(document.getElementById("cfgBible").value, p.bible);
+            p.scarf = safeInt(document.getElementById("cfgScarf").value, p.scarf);
+            p.punctual = safeInt(document.getElementById("cfgPunctual").value, p.punctual);
+            p.notebook = safeInt(document.getElementById("cfgNotebook").value, p.notebook);
+            p.investedFriend = safeInt(document.getElementById("cfgInvested").value, p.investedFriend);
+            p.eventParticipation = safeInt(document.getElementById("cfgEvent").value, p.eventParticipation);
+            state.config.blockRedeemIfInsufficient = document.getElementById("cfgBlockRedeem").value === "true";
+            state.config.seasonLabel = (document.getElementById("cfgSeasonLabel").value || "").trim() || state.config.seasonLabel;
+
+            saveState();
+            alert("Ajustes guardados.");
+        });
+
+        /* ==========================
+           EXPORT / IMPORT / RESET
+           ========================== */
+        document.getElementById("btnExport").addEventListener("click", () => {
+            const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `puntajes_conquistadores_${state.config.seasonLabel || "temporada"}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById("btnImport").addEventListener("click", () => {
+            document.getElementById("importFile").click();
+        });
+        document.getElementById("importFile").addEventListener("change", async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            try {
+                const txt = await file.text();
+                const obj = JSON.parse(txt);
+                // validación básica
+                if (!obj.config || !obj.members || !obj.ledger || !obj.prizes) throw new Error("Estructura inválida");
+                state = obj;
+                saveState();
+                alert("Importación exitosa.");
+            } catch (err) {
+                alert("Error al importar: " + err.message);
+            } finally {
+                e.target.value = "";
+            }
+        });
+
+        document.getElementById("btnReset").addEventListener("click", () => {
+            if (!confirm("Esto borrará los datos locales y cargará demo. ¿Continuar?")) return;
+            state = defaultState();
+            localStorage.setItem(LS_KEY, JSON.stringify(state));
+            renderAll();
+        });
+
+        /* ==========================
+           RENDER ALL
+           ========================== */
+        function renderAll() {
+            // selects
+            fillMemberSelect(document.getElementById("meetMember"));
+            fillMemberSelect(document.getElementById("eventMember"));
+            fillMemberSelect(document.getElementById("invMember"));
+            fillMemberSelect(document.getElementById("adjMember"));
+            fillMemberSelect(document.getElementById("redeemMember"));
+            fillMemberSelect(document.getElementById("meetFilterMember"), true);
+            fillMemberSelect(document.getElementById("eventFilterMember"), true);
+
+            // default dates if empty
+            if (!document.getElementById("meetDate").value) document.getElementById("meetDate").value = todayISO();
+            if (!document.getElementById("eventDate").value) document.getElementById("eventDate").value = todayISO();
+            if (!document.getElementById("invDate").value) document.getElementById("invDate").value = todayISO();
+            if (!document.getElementById("adjDate").value) document.getElementById("adjDate").value = todayISO();
+
+            // render sections
+            renderConfig();
+            renderDashboard();
+            renderMembers();
+            renderMeetings();
+            renderEvents();
+            renderInvested();
+            renderAdjustments();
+            renderPrizes();
+            renderRedeems();
+            renderRanking();
+        }
+
+        renderAll();
+    </script> -->
+</body>
+
+</html>
